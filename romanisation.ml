@@ -36,8 +36,10 @@ module TRS = struct
     let open Str in
     let re = regexp "\\(ts\\|tsh\\|s\\)i" in
     let trs = global_replace re "\\1ii" trs in
-    let re2 = regexp "o\\([^ -]\\)" in
-    global_replace re2 "oo\\1" trs
+    let re2 = regexp "^o\\([^ -]\\)" in
+    let trs = global_replace re2 "oo\\1" trs in
+    let re3 = regexp "\\([^o]\\)o\\([^ -]\\)" in
+    global_replace re3 "oo\\1" trs
 
 
   let trs_re_imf = Str.regexp "\\(p\\|b\\|ph\\|m\\|t\\|th\\|n\\|l\\|k\\|g\\|kh\\|ng\\|h\\|tsi\\|tshi\\|si\\|ts\\|j\\|tsh\\|s\\)?\\([aeiou\\+]+\\|ng\\|m\\)\\(ng\\|nn\\|N\\|m\\|n\\|r\\|p\\|t\\|h\\|k\\)?"
@@ -87,12 +89,26 @@ module TRS = struct
   |> snd |> List.rev 
 
 
+  let string_of_syl ?(sep="") syl =
+    let i = match syl.initial with
+      | None -> ""
+      | Some s -> let len = String.length s in
+        if String.get s (len-1) = 'i' then String.sub s 0 (len-1) else s
+    in
+    let m = string_of_option syl.mediane in
+    let f = string_of_option syl.finale in
+    let t = match syl.ton with
+      | None -> ""
+      | Some x -> (string_of_int x)
+    in 
+    let m' = if (m = "oo") && (f != "") then "o" else m in
+    String.concat sep [i;m';f;t]
+
+
   let string_of_list ?sepm:(sm="") ?sepp:(sp="") (l:parsing_result list) : string =
-    let s_of_syl syl =
-      String.concat sp (List.map string_of_option [syl.separateur; syl.initial; syl.mediane; syl.finale;(so_of_io syl.ton)]) in
     let s_of_parse_result = function
       | Other s -> s
-      | Syl syl -> s_of_syl syl
+      | Syl syl -> string_of_syl ~sep:sp syl
     in
     String.concat sm 
       (List.map s_of_parse_result l)
