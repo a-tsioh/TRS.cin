@@ -6,5 +6,5 @@ reader: moeReader.ml romanisation.ml
 result.cin: reader head.cin
 	cat head.cin > result.cin;
 	./reader $(MOE_JSON) >> result.cin;
-	echo "%chardef en" >> result.cin
+	echo "%chardef end" >> result.cin
 	

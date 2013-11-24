@@ -1,6 +1,18 @@
 module TRS = struct
   let (|>) x f = f x
 
+  let list_of_opt_list l =
+    List.fold_left
+      (fun acc el -> match el with 
+         | Some x -> x::acc
+         | None -> acc
+      )
+      []
+      l
+  |> List.rev
+
+  let flags = [`UTF8;`CASELESS]
+
   type syllable =
     {
       separateur : string option;
@@ -33,38 +45,48 @@ module TRS = struct
     (fst a', string_of_array (Array.of_list (List.rev (snd a'))))
   
   let expand trs =
-    let open Str in
-    let re = regexp "\\(ts\\|tsh\\|s\\)i" in
-    let trs = global_replace re "\\1ii" trs in
-    let re2 = regexp "^o\\([^ -]\\)" in
-    let trs = global_replace re2 "oo\\1" trs in
-    let re3 = regexp "\\([^o]\\)o\\([^ -]\\)" in
-    global_replace re3 "oo\\1" trs
+    let open Pcre in
+    let rex = regexp ~flags "(ts|tsh|s)i" in
+    let trs = replace_first ~rex ~templ:"$1ii" trs in
+    let rex = regexp ~flags "^o([^ -o])" in
+    let trs = replace ~rex ~templ:"oo$1" trs in
+    let rex = regexp ~flags "([^o])o([^ -])" in
+    replace ~rex ~templ:"$1oo$2" trs
 
 
-  let trs_re_imf = Str.regexp "\\(p\\|b\\|ph\\|m\\|t\\|th\\|n\\|l\\|k\\|g\\|kh\\|ng\\|h\\|tsi\\|tshi\\|si\\|ts\\|j\\|tsh\\|s\\)?\\([aeiou\\+]+\\|ng\\|m\\)\\(ng\\|nn\\|N\\|m\\|n\\|r\\|p\\|t\\|h\\|k\\)?"
+  let trs_re_imf = Pcre.regexp ~flags "(p|b|ph|m|t|th|n|l|k|g|kh|ng|h|tsi|tshi|si|ts|j|tsh|s)?([aeiou+]+|ng|m)(ng|nn|N|m|n|r|p|t|h|k)?"
 
   type parsing_result = Syl of syllable | Other of string
 
   let syllable_of_trs s =
-    let open Str in
+    let open Pcre in
     let aux s =
-      let i = try Some (matched_group 1 s)
-        with Not_found -> None
-      in
-      let m = try Some (matched_group 2 s)
-        with Not_found -> None
-      in
-      let f = try Some (matched_group 3 s)
-        with Not_found -> None
-      in
+      let i = s.(1) in
+      let m = s.(2) in
+      let f = s.(3) in
       {separateur=None; initial=i; mediane=m; finale=f; ton=None}
     in
     let ton,syl = extract_tone s in 
     let syl = expand syl in 
-    if string_match trs_re_imf syl 0
-    then Syl ({(aux syl) with ton=ton})
-    else Other s 
+    try 
+      let m = (Pcre.exec ~rex:trs_re_imf syl) in
+      let subs = get_opt_substrings m in
+      let (debut,fin) = get_substring_ofs m 0 in
+      let len = String.length syl in
+      let prefix = if debut != 0 
+        then Some (Other (String.sub syl 0 debut))
+        else None
+      in
+      let suffix = if fin != len
+        then Some (Other (String.sub syl fin (len-fin)))
+        else None
+      in
+      list_of_opt_list 
+        [prefix;  
+         Some (Syl ({(aux subs) with ton=ton}));
+         suffix]
+    with
+      Not_found -> [Other s] 
 
   let so_of_io = function
     |Some i -> Some (string_of_int i)
@@ -76,16 +98,26 @@ module TRS = struct
 
 
   let parse s =
-    let re = Str.regexp " \\|--\\|-" in
+    let open Pcre in
+    let re = regexp ~flags " |--|-" in
     List.fold_left 
       (fun (delim,syls) m -> match m with
-         | Str.Text t -> ( match syllable_of_trs t with
-             | Syl syl -> (None, (Syl {syl with separateur=delim})::syls)
-             | Other x -> (None, (Other ((string_of_option delim)^x))::syls)
+         | Text t -> (
+             let parsed = syllable_of_trs t in
+             List.fold_left 
+               (fun (d,s) syl -> match syl with 
+                  | Syl syl -> (None, (Syl {syl with separateur=d})::s)
+                  | Other x -> (None, (Other ((string_of_option d)^x))::s)
+               )
+               (delim,syls)
+               parsed
            )             
-         | Str.Delim d -> ((Some d),syls))
+         | Delim d -> ((Some d),syls)
+         | NoGroup -> raise (Invalid_argument "pb de regex, should not happen")
+         | Group  _ -> raise (Invalid_argument "pb de regex, should not happen")
+      )
       (None,[])
-      (Str.full_split re s)
+      (full_split ~rex:re  s)
   |> snd |> List.rev 
 
 
@@ -101,7 +133,7 @@ module TRS = struct
       | None -> ""
       | Some x -> (string_of_int x)
     in 
-    let m' = if (m = "oo") && (f != "") then "o" else m in
+    let m' = if f != "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
     String.concat sep [i;m';f;t]
 
 
