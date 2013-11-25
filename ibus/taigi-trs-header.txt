@@ -50,7 +50,7 @@ AUTHOR = Pierre Magistry <pierre@magistry.fr>
 STATUS_PROMPT = TW
 
 ### Valid input chars.
-VALID_INPUT_CHARS = -abcdefghijklmnopqrstuvwxyz
+VALID_INPUT_CHARS = -abcdefghijklmnopqrstuvwxyz12345678
 
 ### Layout
 LAYOUT = us
