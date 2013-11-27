@@ -1,5 +1,7 @@
+let (|>) x f = f x
+
+
 module TRS = struct
-  let (|>) x f = f x
 
   let list_of_opt_list l =
     List.fold_left
@@ -148,6 +150,110 @@ module TRS = struct
 
 
 end
+
+module Bopomo = struct
+
+  let initiale_of_trs  = function
+    | "p" -> "ㄅ"
+    | "b" -> "ㆠ"
+    | "ph" -> "ㄆ"
+    | "m" -> "ㄇ"
+    | "t" -> "ㄉ "
+    | "th" -> "ㄊ"
+    | "n" -> "ㄋ"
+    | "l" -> "ㄌ"
+    | "k" -> "ㄍ"
+    | "g" -> "ㆣ"
+    | "kh" -> "ㄎ"
+    | "ng" -> "ㄫ"
+    | "h" -> "ㄏ"
+    | "tsi" -> "ㄐ"
+    | "ji" -> "ㆢ"
+    | "tshi" -> "ㄑ"
+    | "si" -> "ㄒ"
+    | "ts" -> "ㄗ"
+    | "j" -> "ㆡ"
+    | "tsh" -> "ㄘ"
+    | "s" -> "ㄙ"
+    | _ -> ""
+
+    let finale_of_trs = function
+      | "a" -> "ㄚ"
+      | "an" -> "ㄢ"
+      | "ang" -> "ㄤ"
+      | "ann" -> "ㆩ"
+      | "oo" -> "ㆦ"
+      | "onn" -> "ㆧ"
+      | "o" -> "ㄜ"
+      | "e" -> "ㆤ"
+      | "enn" -> "ㆥ"
+      | "ai" -> "ㄞ"
+      | "ainn" -> "ㆮ"
+      | "au" -> "ㄠ"
+      | "aunn" -> "ㆯ"
+      | "am" -> "ㆰ"
+      | "om" -> "ㆱ"
+      | "m" -> "ㆬ"
+      | "ong" -> "ㆲ"
+      | "ng" -> "ㆭ"
+      | "i" -> "ㄧ"
+      | "inn" -> "ㆪ"
+      | "u" -> "ㄨ"
+      | "unn" -> "ㆫ"
+      | "ing" -> "ㄧㄥ"
+      | "in" -> "ㄧㄣ"
+      | "un" -> "ㄨㄣ"
+      | _ -> ""
+
+    let tone_of_trs f t = 
+      let entering = match f with
+        | "p" -> "ㆴ" 
+        | "t" -> "ㆵ"
+        | "k" -> "ㆶ"
+        | _ -> ""
+      in 
+      match t with
+        | 1 -> entering
+        | 2 -> "ˋ"
+        | 3 -> "˪"
+        | 4 -> entering
+        | 5 -> "ˊ"
+        | 7 -> "˫"
+        | 8 -> "."^entering
+        | _ -> "" 
+
+  let string_of_syl ?(sep="") syl =
+    let open TRS in
+    let i = string_of_option syl.initial in
+    let m = string_of_option syl.mediane in
+    let f = string_of_option syl.finale in
+    let m' = if f != "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
+    let mf =
+      if (f != "p") &&
+         (f != "t") &&
+         (f != "k") 
+      then m'^f
+      else m'
+    in
+    let t = match syl.ton with
+      | None -> 1 
+      | Some x -> x
+    in 
+    String.concat sep [initiale_of_trs i; finale_of_trs mf; tone_of_trs f t]
+
+
+  let string_of_list ?sepm:(sm="") ?sepp:(sp="") (l:TRS.parsing_result list) : string =
+    let s_of_parse_result = function
+      | TRS.Other s -> s
+      | TRS.Syl syl -> string_of_syl ~sep:sp syl
+    in
+    String.concat sm 
+      (List.map s_of_parse_result l)
+
+
+
+end
+
 
 module Fuzzify = struct
   let separator syl = TRS.( {syl with separateur=None } )
