@@ -2,12 +2,8 @@
 #說明: https://github.com/a-tsioh/TRS.cin
 #作者: 阿石Pierre Magistry <pierre@magistry.fr>, 2013
 #授權方式: Public Domain
-%gen_inp
 %ename TRS Taigi
-%cname 臺羅
-%tcname 臺羅
-%scname 台罗
-%encoding UTF-8
+%prompt tg
 %selkey 1234567890
 %keyname begin
 - -

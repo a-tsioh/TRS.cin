@@ -75,11 +75,11 @@ module TRS = struct
       let subs = get_opt_substrings m in
       let (debut,fin) = get_substring_ofs m 0 in
       let len = String.length syl in
-      let prefix = if debut != 0 
+      let prefix = if debut <> 0 
         then Some (Other (String.sub syl 0 debut))
         else None
       in
-      let suffix = if fin != len
+      let suffix = if fin <> len
         then Some (Other (String.sub syl fin (len-fin)))
         else None
       in
@@ -135,13 +135,13 @@ module TRS = struct
       | None -> ""
       | Some x -> (string_of_int x)
     in 
-    let m' = if f != "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
+    let m' = if f <> "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
     String.concat sep [i;m';f;t]
 
 
-  let string_of_list ?sepm:(sm="") ?sepp:(sp="") (l:parsing_result list) : string =
+  let string_of_list ?sepm:(sm="") ?sepp:(sp="") ?(discard_non_trs=false) (l:parsing_result list) : string =
     let s_of_parse_result = function
-      | Other s -> s
+      | Other s -> if discard_non_trs then "" else s
       | Syl syl -> string_of_syl ~sep:sp syl
     in
     String.concat sm 
@@ -154,62 +154,66 @@ end
 module Bopomo = struct
 
   let initiale_of_trs  = function
+    | "ph" -> "ㄆ"
     | "p" -> "ㄅ"
     | "b" -> "ㆠ"
-    | "ph" -> "ㄆ"
     | "m" -> "ㄇ"
-    | "t" -> "ㄉ "
-    | "th" -> "ㄊ"
-    | "n" -> "ㄋ"
     | "l" -> "ㄌ"
-    | "k" -> "ㄍ"
     | "g" -> "ㆣ"
     | "kh" -> "ㄎ"
+    | "k" -> "ㄍ"
     | "ng" -> "ㄫ"
+    | "n" -> "ㄋ"
     | "h" -> "ㄏ"
-    | "tsi" -> "ㄐ"
-    | "ji" -> "ㆢ"
     | "tshi" -> "ㄑ"
-    | "si" -> "ㄒ"
-    | "ts" -> "ㄗ"
-    | "j" -> "ㆡ"
     | "tsh" -> "ㄘ"
+    | "tsi" -> "ㄐ"
+    | "ts" -> "ㄗ"
+    | "th" -> "ㄊ"
+    | "t" -> "ㄉ "
+    | "ji" -> "ㆢ"
+    | "j" -> "ㆡ"
+    | "si" -> "ㄒ"
     | "s" -> "ㄙ"
     | _ -> ""
 
-    let finale_of_trs = function
-      | "a" -> "ㄚ"
-      | "an" -> "ㄢ"
-      | "ang" -> "ㄤ"
-      | "ann" -> "ㆩ"
-      | "oo" -> "ㆦ"
-      | "onn" -> "ㆧ"
-      | "o" -> "ㄜ"
-      | "e" -> "ㆤ"
-      | "enn" -> "ㆥ"
-      | "ai" -> "ㄞ"
+    let rec finale_of_trs = function
       | "ainn" -> "ㆮ"
-      | "au" -> "ㄠ"
       | "aunn" -> "ㆯ"
+      | "ann" -> "ㆩ"
+      | "ang" -> "ㄤ"
+      | "an" -> "ㄢ"
+      | "ai" -> "ㄞ"
+      | "au" -> "ㄠ"
       | "am" -> "ㆰ"
-      | "om" -> "ㆱ"
-      | "m" -> "ㆬ"
+      | "a" -> "ㄚ"
+      | "onn" -> "ㆧ"
       | "ong" -> "ㆲ"
-      | "ng" -> "ㆭ"
-      | "i" -> "ㄧ"
+      | "oo" -> "ㆦ"
+      | "om" -> "ㆱ"
+      | "o" -> "ㄜ"
+      | "enn" -> "ㆥ"
+      | "e" -> "ㆤ"
+      | "m" -> "ㆬ"
       | "inn" -> "ㆪ"
-      | "u" -> "ㄨ"
-      | "unn" -> "ㆫ"
       | "ing" -> "ㄧㄥ"
       | "in" -> "ㄧㄣ"
+      | "i" -> "ㄧ"
+      | "ng" -> "ㆭ"
+      | "unn" -> "ㆫ"
       | "un" -> "ㄨㄣ"
-      | _ -> ""
+      | "u" -> "ㄨ"
+      | other -> match (String.get other 0) with 
+        | 'i' -> "ㄧ" ^ finale_of_trs (String.sub other 1 ((String.length other)-1))
+        | 'u' -> "ㄨ" ^ finale_of_trs (String.sub other 1 ((String.length other)-1))
+        | _ -> ""
 
     let tone_of_trs f t = 
       let entering = match f with
         | "p" -> "ㆴ" 
         | "t" -> "ㆵ"
         | "k" -> "ㆶ"
+        | "h" -> "ㆷ"
         | _ -> ""
       in 
       match t with
@@ -220,18 +224,19 @@ module Bopomo = struct
         | 5 -> "ˊ"
         | 7 -> "˫"
         | 8 -> "."^entering
-        | _ -> "" 
+        | _ -> entering 
 
   let string_of_syl ?(sep="") syl =
     let open TRS in
     let i = string_of_option syl.initial in
     let m = string_of_option syl.mediane in
     let f = string_of_option syl.finale in
-    let m' = if f != "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
+    let m' = if f <> "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
     let mf =
-      if (f != "p") &&
-         (f != "t") &&
-         (f != "k") 
+      if ((f <> "p") &
+         (f <> "t") &
+         (f <> "k") & 
+         (f <> "h")  )
       then m'^f
       else m'
     in
@@ -239,6 +244,10 @@ module Bopomo = struct
       | None -> 1 
       | Some x -> x
     in 
+    print_endline i;
+    print_endline m';
+    print_endline mf;
+    print_endline f;
     String.concat sep [initiale_of_trs i; finale_of_trs mf; tone_of_trs f t]
 
 
@@ -258,6 +267,10 @@ end
 module Fuzzify = struct
   let separator syl = TRS.( {syl with separateur=None } )
   let final syl = TRS.( {syl with finale=None} )
+  let mediane syl = TRS.( 
+      match syl.initial with
+        None -> syl
+      | Some _ -> {syl with mediane=None} )
   let tone syl = TRS.( {syl with ton=None} )
   let fuzzify_parse f parse_result = 
     let open TRS in

@@ -10,7 +10,7 @@ result.cin: reader head.cin
 
 ibus/taigi-trs.txt: reader
 	cat ibus/taigi-trs-header.txt > ibus/taigi-trs.txt
-	./reader $(MOE_JSON) | sort -u | tr ' ' '\t' | sed 's/$$/\t1/'  >> ibus/taigi-trs.txt
+	./reader $(MOE_JSON) | sort -u | sed -r "s/ /\t/g" | sed 's/$$/\t1/'  >> ibus/taigi-trs.txt
 	echo "END TABLE" >> ibus/taigi-trs.txt
 
 ibus/taigi-trs.db: ibus/taigi-trs.txt
