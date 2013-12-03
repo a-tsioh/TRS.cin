@@ -15,3 +15,6 @@ ibus/taigi-trs.txt: reader
 
 ibus/taigi-trs.db: ibus/taigi-trs.txt
 	ibus-table-createdb -n ibus/taigi-trs.db -s ibus/taigi-trs.txt
+	
+jszhuyin-data.txt: reader
+	./reader $(MOE_JSON) | sort -u | perl -CSDA -pe 'use utf8; s/^([^ ]+) ([^ \n]+)$$/\2 \1 -1.0/' > jszhuyin-data.txt

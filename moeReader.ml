@@ -65,7 +65,7 @@ let extract_trs entry =
          | `Assoc d -> List.fold_left (fun acc (lieu,var) -> add_dialectal_variation acc var) std_readings d
          | _ -> std_readings
        in
-       let filtered = List.filter no_space all_readings in 
+       let filtered = List.filter (fun x -> (String.length x) < 16) (List.filter no_space all_readings) in 
        let couples = List.map (fun s -> (s,title)) filtered in
        List.append couples acc
     )
@@ -74,19 +74,18 @@ let extract_trs entry =
 
 
 
-let mapping_list = 
-  [(fun (trs,ji) -> TRS.string_of_list ~sepm:"" ~discard_non_trs:true (TRS.parse trs),ji);
-   (fun (trs,ji) -> TRS.string_of_list ~sepm:""  ~discard_non_trs:true (TRS.parse trs),trs);
+let mapping_list = [
+   (*(fun (trs,ji) -> TRS.string_of_list ~sepm:"" ~discard_non_trs:true (TRS.parse trs),ji);
+(  (fun (trs,ji) -> TRS.string_of_list ~sepm:""  ~discard_non_trs:true (TRS.parse trs),trs);
    (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.( TRS.parse trs 
                                                            |> fuzzify_parse tone 
                                                            |> fuzzify_parse final 
                                                            |> fuzzify_parse mediane),ji));
    (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
    (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji));
-(*   (fun (trs,ji) -> TRS.string_of_list ~sepm:"" (TRS.parse trs),(Bopomo.string_of_list ~sepm:"" (TRS.parse trs))); 
-  (fun (trs,ji) -> (Bopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
-   (fun (trs,ji) -> (Bopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
-     (fun (trs,ji) -> (Bopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs)) *)
+   (fun (trs,ji) -> TRS.string_of_list ~sepm:"" (TRS.parse trs),(Bopomo.string_of_list ~sepm:"" (TRS.parse trs))); *)
+  (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
+  (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji)); 
   ]
 
 let () =

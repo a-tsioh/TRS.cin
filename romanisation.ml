@@ -244,16 +244,16 @@ module Bopomo = struct
       | None -> 1 
       | Some x -> x
     in 
-    print_endline i;
+(*    print_endline i;
     print_endline m';
     print_endline mf;
-    print_endline f;
+    print_endline f;*)
     String.concat sep [initiale_of_trs i; finale_of_trs mf; tone_of_trs f t]
 
 
   let string_of_list ?sepm:(sm="") ?sepp:(sp="") (l:TRS.parsing_result list) : string =
     let s_of_parse_result = function
-      | TRS.Other s -> s
+      | TRS.Other s -> ""
       | TRS.Syl syl -> string_of_syl ~sep:sp syl
     in
     String.concat sm 
@@ -281,4 +281,117 @@ module Fuzzify = struct
       )
       parse_result
 end
+
+module NonExtBopomo = struct
+
+  let initiale_of_trs  = function
+    | "ph" -> "ㄆ"
+    | "p" -> "ㄅ"
+    | "b" -> "ㄅ"
+    | "m" -> "ㄇ"
+    | "l" -> "ㄌ"
+    | "g" -> "ㄍ"
+    | "kh" -> "ㄎ"
+    | "k" -> "ㄍ"
+    | "ng" -> "ㄥ"
+    | "n" -> "ㄋ"
+    | "h" -> "ㄏ"
+    | "tshi" -> "ㄑ"
+    | "tsh" -> "ㄘ"
+    | "tsi" -> "ㄐ"
+    | "ts" -> "ㄗ"
+    | "th" -> "ㄊ"
+    | "t" -> "ㄉ"
+    | "ji" -> "ㄐ"
+    | "j" -> "ㄗ"
+    | "si" -> "ㄒ"
+    | "s" -> "ㄙ"
+    | _ -> ""
+
+    let rec finale_of_trs = function
+      | "ainn" -> "ㄞ"
+      | "aunn" -> "ㄠ"
+      | "ann" -> "ㄚ"
+      | "ang" -> "ㄤ"
+      | "an" -> "ㄢ"
+      | "ai" -> "ㄞ"
+      | "au" -> "ㄠ"
+      | "am" -> "ㄚㄇ"
+      | "a" -> "ㄚ"
+      | "onn" -> "ㄛ"
+      | "ong" -> "ㄛㄥ"
+      | "oo" -> "ㄛ"
+      | "om" -> "ㄛㄇ"
+      | "o" -> "ㄜ"
+      | "enn" -> "ㄝ"
+      | "e" -> "ㄝ"
+      | "m" -> "ㄇ"
+      | "inn" -> "ㄧ"
+      | "ing" -> "ㄧㄥ"
+      | "in" -> "ㄧㄣ"
+      | "i" -> "ㄧ"
+      | "ng" -> "ㄥ"
+      | "unn" -> "ㄨ"
+      | "un" -> "ㄨㄣ"
+      | "u" -> "ㄨ"
+      | other -> match (String.get other 0) with 
+        | 'i' -> "ㄧ" ^ finale_of_trs (String.sub other 1 ((String.length other)-1))
+        | 'u' -> "ㄨ" ^ finale_of_trs (String.sub other 1 ((String.length other)-1))
+        | _ -> ""
+
+    let tone_of_trs f t = 
+      let entering = match f with
+        | "p" -> "ㄅ" 
+        | "t" -> "ㄉ"
+        | "k" -> "ㄍ"
+        | "h" -> "ㄏ"
+        | _ -> ""
+      in 
+      match t with
+        | 1 -> entering
+        | 2 -> "ˋ"
+        | 3 -> ""
+        | 4 -> entering
+        | 5 -> "ˊ"
+        | 7 -> ""
+        | 8 -> entering
+        | _ -> entering 
+
+  let string_of_syl ?(sep="") syl =
+    let open TRS in
+    let i = string_of_option syl.initial in
+    let m = string_of_option syl.mediane in
+    let f = string_of_option syl.finale in
+    let m' = if f <> "" then Pcre.replace ~pat:"oo" ~templ:"o" m else m in
+    let mf =
+      if ((f <> "p") &
+         (f <> "t") &
+         (f <> "k") & 
+         (f <> "h")  )
+      then m'^f
+      else m'
+    in
+    let t = match syl.ton with
+      | None -> 1 
+      | Some x -> x
+    in 
+(*    print_endline i;
+    print_endline m';
+    print_endline mf;
+    print_endline f;*)
+    String.concat sep [initiale_of_trs i; finale_of_trs mf; tone_of_trs f t]
+
+
+  let string_of_list ?sepm:(sm="") ?sepp:(sp="") (l:TRS.parsing_result list) : string =
+    let s_of_parse_result = function
+      | TRS.Other s -> ""
+      | TRS.Syl syl -> string_of_syl ~sep:sp syl
+    in
+    String.concat sm 
+      (List.map s_of_parse_result l)
+
+
+
+end
+
 
