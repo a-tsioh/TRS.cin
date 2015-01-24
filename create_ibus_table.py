@@ -9,6 +9,7 @@ dataframe = P.read_sql_query("SELECT * FROM lectures WHERE langue='hokkien' AND 
 for i, row in dataframe.iterrows():
     hj = row['forme'].decode('utf8')
     tl = row['text'].decode('utf8')
+    tl = tl.replace(u'i\u030d', u'\u0131\u030d') # remove the dot on the i when 8th tone
     norm = row['normalisation'].split("_")
     keys = "".join(norm)
     print "\t".join([keys, hj, "1"]).encode("utf8")
