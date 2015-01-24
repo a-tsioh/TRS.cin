@@ -75,17 +75,17 @@ let extract_trs entry =
 
 
 let mapping_list = [
-   (*(fun (trs,ji) -> TRS.string_of_list ~sepm:"" ~discard_non_trs:true (TRS.parse trs),ji);
-(  (fun (trs,ji) -> TRS.string_of_list ~sepm:""  ~discard_non_trs:true (TRS.parse trs),trs);
-   (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.( TRS.parse trs 
+   (fun (trs,ji) -> TRS.string_of_list ~sepm:"" ~discard_non_trs:true (TRS.parse trs),ji);
+   (fun (trs,ji) -> TRS.string_of_list ~sepm:""  ~discard_non_trs:true (TRS.parse trs),trs);
+   (*(fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.( TRS.parse trs 
                                                            |> fuzzify_parse tone 
                                                            |> fuzzify_parse final 
-                                                           |> fuzzify_parse mediane),ji));
+                                                           |> fuzzify_parse mediane),ji)); 
    (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
-   (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji));
-   (fun (trs,ji) -> TRS.string_of_list ~sepm:"" (TRS.parse trs),(Bopomo.string_of_list ~sepm:"" (TRS.parse trs))); *)
-  (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
-  (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji)); 
+   (fun (trs,ji) -> (TRS.string_of_list ~sepm:"" ~discard_non_trs:true Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji));*)
+(*   (fun (trs,ji) -> TRS.string_of_list ~sepm:"" (TRS.parse trs),(Bopomo.string_of_list ~sepm:"" (TRS.parse trs))); *)
+ (* (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),trs));
+  (fun (trs,ji) -> (NonExtBopomo.string_of_list ~sepm:"" Fuzzify.(TRS.parse trs |> fuzzify_parse tone),ji));  *)
   ]
 
 let () =

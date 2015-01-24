@@ -40,7 +40,7 @@ DESCRIPTION = 臺語TRS輸入法.
 ### sigle "zh_CN" just be recognized as zh_CN,
 ### but "zh_CN, zh_HK" or more zh_XX will be recognized as zh;
 ### and "en_US, zh_CN" will be just ignored.
-LANGUAGES = zh_TW,zh_HK,en_US,fr_FR
+LANGUAGES = nan_TW,fr_FR
 
 ### The author of this table
 AUTHOR = Pierre Magistry <pierre@magistry.fr> 
