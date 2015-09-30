@@ -1,0 +1,9 @@
+;#臺語TRS輸入法
+;說明: https://github.com/a-tsioh/TRS.cin
+;作者: 阿石Pierre Magistry <pierre@magistry.fr>, 2013
+;授權方式: Public Domain
+;fcitx 版本 0x03 码表文件
+键码=abcdefghijklmnopqrstuvwxy123456789
+码长=24
+拼音长度=12
+[数据]
